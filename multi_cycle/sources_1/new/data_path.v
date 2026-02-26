@@ -167,7 +167,7 @@ always@(ALUOp or IR[31:25] or IR[14:12] or opA or opB)
         12'b10_0000000_111: alu = opA & opB; // and
         12'b10_0000000_110: alu = opA | opB; // or
         12'b10_0000000_100: alu = opA ^ opB; // xor
-        //12'b10_0000001_000: alu=shuffle_result;
+       
             
         12'b11_xxxxxxx_000: alu = opA + opB; // addi
         12'b11_xxxxxxx_111: alu = opA & opB; // andi

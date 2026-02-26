@@ -25,13 +25,25 @@ endmodule
 
 module Instruction_Mem(input  [31:0] read_address, output [31:0] instruction);
 
-    reg [31:0] I_Mem[63:0]; //fiecare inst are 32 de biti si citesc din memorie de la adresa input addr care vine din PC
-
-    assign instruction = I_Mem[read_address[7:2]];
+    reg [7:0] mem [0:1023];      // 1024 bytes 
+    reg [31:0] temp_mem [0:255];
+    integer i;
 
     initial begin
-        $readmemh("program.mem", I_Mem);
+        $readmemh("program.mem", temp_mem);
+
+        for (i = 0; i < 64; i = i + 1) begin
+            mem[i*4 + 3] = temp_mem[i][31:24];
+            mem[i*4 + 2] = temp_mem[i][23:16];
+            mem[i*4 + 1] = temp_mem[i][15:8];
+            mem[i*4 + 0] = temp_mem[i][7:0];
+        end
     end
+
+    assign instruction = {mem[read_address+3],
+                          mem[read_address+2],
+                          mem[read_address+1],
+                          mem[read_address]};
 
 endmodule
 
@@ -79,7 +91,7 @@ module ImmGen(Opcode, instruction, ImmExt);
             7'b0000011: ImmExt = {{20{instruction[31]}}, instruction[31:20]};// la instructiune de tip I lw sau addi , valoarea imediata e pe 12 biti si ii exitnd semnul 
             7'b0100011: ImmExt = {{20{instruction[31]}}, instruction[31:25], instruction[11:7]};// la inst de tip S val imediata e impartita in 2 ex sw
            7'b0010011: ImmExt = {{20{instruction[31]}}, instruction[31:20]}; // addi (I-type)
-            7'b1100011: ImmExt = {{19{instruction[31]}}, instruction[31], instruction[30:25], instruction[11:8], 1'b0};   // la inst de tip B  ex beq , la final e 0 pt Branch offset este mereu multiplu de 2. 
+            7'b1100011: ImmExt = {{20{instruction[31]}}, instruction[7], instruction[30:25], instruction[11:8], 1'b0};   // la inst de tip B  ex beq , la final e 0 pt Branch offset este mereu multiplu de 2. 
             default: ImmExt = 32'b0;
         endcase
     end
@@ -201,26 +213,33 @@ module Data_Memory(clk, reset, MemWrite, MemRead, read_address, Write_data, MemD
     input [31:0] read_address, Write_data;
     output [31:0] MemData_out;
     
+    reg [7:0] mem [0:1023];    // EXACT ca multicycle
     integer k;
-    reg [31:0] D_Memory[63:0];
-    
+
+    localparam DATA_OFFSET = 32'd256;
+
+    wire [31:0] addr = read_address;
+
     always @(posedge clk or posedge reset)
     begin
         if (reset)
-        begin
-            for (k=0; k<64; k=k+1) 
-            begin
-                D_Memory[k] <= 32'b0;
-            end
-        end
+            for (k=0; k<1024; k=k+1)
+                mem[k] <= 8'b0;
         else if (MemWrite)
-         begin
-            D_Memory[read_address[7:2]] <= Write_data;
+        begin
+            mem[addr + 3] <= Write_data[31:24];
+            mem[addr + 2] <= Write_data[23:16];
+            mem[addr + 1] <= Write_data[15:8];
+            mem[addr + 0] <= Write_data[7:0];
         end
     end
-    
-    assign MemData_out = (MemRead) ? D_Memory[read_address[7:2]] : 32'b0;
 
+    assign MemData_out = (MemRead) ?
+                        {mem[addr+3],
+                         mem[addr+2],
+                         mem[addr+1],
+                         mem[addr]} :
+                         32'b0;
 endmodule
 
 module Mux(sel, A, B, Mux_out);

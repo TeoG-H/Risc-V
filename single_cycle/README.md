@@ -145,7 +145,6 @@ Branch AND Zero
 
 ## Execution Example
 
-Consider the following program:
 
 00500093   # addi x1, x0, 5  
 00700113   # addi x2, x0, 7  
@@ -205,4 +204,49 @@ After execution:
 ![primele instructiuni](images/primele_instructiuni.png)
 
 
+Consider the following program:
+
+10000313   # addi t1, zero, 256
+00500293   # addi t0, zero, 5
+00532023   # sw   t0, 0(t1)
+00032383   # lw   t2, 0(t1)
+FE0008E3   # beq  zero, zero, -16
+
+
+
+### Register Update Verification
+
+It can be observed that registers **t0 (x5)**, **t1 (x6)** and **t2 (x7)** are updated correctly during program execution.
+
+- `t1 (x6)` is initialized with the base address `256`
+- `t0 (x5)` receives the value `5`
+- `t2 (x7)` correctly loads the stored value from memory
+
+![Registers](images/registrii.png)
+
+---
+
+### Store Instruction Verification (`sw`)
+
+The `sw` instruction functions correctly by writing the value stored in **t0 (x5)** into data memory at byte address `256`.
+
+The waveform confirms that the correct value is saved in memory.
+
+![Memory Write](images/salvare_memorie.png)
+
+---
+
+### Branch Instruction Verification (`beq`)
+
+The `beq` instruction operates correctly.  
+The Program Counter follows the expected sequence:  0-4-8-12-16-0
+
+This confirms that:
+
+- The branch condition is evaluated correctly
+- The immediate value is properly sign-extended
+- The PC update logic functions as intended
+- The processor successfully loops back to the beginning of the program
+
+![Instruction Flow](images/instr_t.png)
 
