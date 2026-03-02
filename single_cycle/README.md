@@ -16,7 +16,13 @@ Because of this design choice, the clock cycle must be long enough to accommodat
 
 The processor implements a subset of the RV32I instruction set. Only a limited number of instructions were implemented in order to focus on the core datapath and control mechanisms.
 
----
+## Architecture Overview
+The processor follows a classical single-cycle Harvard-style datapath:
+- Separate instruction and data memories
+- 32 general-purpose registers (x0–x31)
+- Byte-addressable data memory
+
+
 
 ## Implemented Instructions
 
@@ -43,7 +49,7 @@ The processor implements a subset of the RV32I instruction set. Only a limited n
 This subset is sufficient to demonstrate arithmetic operations, memory access, branching logic, and control signal generation.
 
 
----
+
 
 ## Processor Operation
 
@@ -76,7 +82,6 @@ The processor supports the following RISC-V instruction formats:
 
 
 
----
 
 ## Instruction Encoding (Supported Subset)
 
@@ -97,7 +102,7 @@ The following table summarizes the instruction encodings supported by this imple
 | SW         | S    | 0100011  | 010    | —        | M[rs1 + imm] = rs2 |
 | BEQ        | B    | 1100011  | 000    | —        | if (rs1 == rs2) PC = PC + imm |
 
----
+
 
 ## Module Description
 
@@ -141,7 +146,15 @@ Determines whether the branch is taken using:
 Branch AND Zero
 
 
+## The testbench:
+- Decodes each instruction
+- Computes expected ALU results
+- Verifies write-back values
+- Verifies memory writes and loads
+- Checks PC increment and branch logic
+- Stops simulation on first mismatch
 
+This ensures instruction-level architectural correctness rather than only checking final register states.
 
 ## Execution Example
 
@@ -224,7 +237,6 @@ It can be observed that registers **t0 (x5)**, **t1 (x6)** and **t2 (x7)** are u
 
 ![Registers](images/registrii.png)
 
----
 
 ### Store Instruction Verification (`sw`)
 
@@ -234,7 +246,7 @@ The waveform confirms that the correct value is saved in memory.
 
 ![Memory Write](images/salvare_memorie.png)
 
----
+
 
 ### Branch Instruction Verification (`beq`)
 
